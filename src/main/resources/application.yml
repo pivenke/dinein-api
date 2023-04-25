@@ -1,0 +1,32 @@
+jwt:
+  secret: "[a-zA-Z0-9._]^+$xnvjdvnje5u4858erj283u83jefwdiSJuhe7rSyvmem$"
+
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://dineindb.ceyovvm0vkpf.us-east-1.rds.amazonaws.com:3306/dinein_db
+    password: Ekanayake11.11
+    username: root
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+cloud:
+  aws:
+    credentials:
+      access-key: AKIA2CFL5S7LI5QIOO6C
+      secret-key: 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
+    region:
+      static: us-east-1
+    stack:
+      auto: false
+
+application:
+  bucket:
+    name: dinein-media
