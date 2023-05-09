@@ -1,11 +1,11 @@
 package it.dinein.api.dineinapi.controller;
 
 import it.dinein.api.dineinapi.exception.*;
-import it.dinein.api.dineinapi.model.Hotelier;
-import it.dinein.api.dineinapi.model.HotelierPrincipal;
-import it.dinein.api.dineinapi.model.HttpResponse;
+import it.dinein.api.dineinapi.model.*;
 import it.dinein.api.dineinapi.service.IHotelierService;
 import it.dinein.api.dineinapi.service.ResetCodeService;
+import it.dinein.api.dineinapi.service.ReviewService;
+import it.dinein.api.dineinapi.service.TableService;
 import it.dinein.api.dineinapi.utility.HJWTTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +37,20 @@ public class HotelierController extends ExceptionHandling{
     private AuthenticationManager authenticationManager;
     private HJWTTokenProvider hjwtTokenProvider;
     private ResetCodeService resetCodeService;
+    private ReviewService reviewService;
+    private TableService tableService;
 
 
     @Autowired
-    public HotelierController(IHotelierService hotelierService, AuthenticationManager authenticationManager, HJWTTokenProvider hjwtTokenProvider,ResetCodeService resetCodeService) {
+    public HotelierController(IHotelierService hotelierService, AuthenticationManager authenticationManager,
+                              HJWTTokenProvider hjwtTokenProvider, ResetCodeService resetCodeService,
+                              ReviewService reviewService, TableService tableService) {
         this.hotelierService = hotelierService;
         this.authenticationManager = authenticationManager;
         this.hjwtTokenProvider = hjwtTokenProvider;
         this.resetCodeService = resetCodeService;
+        this.reviewService = reviewService;
+        this.tableService = tableService;
     }
 
     @PostMapping("/login")
@@ -59,7 +65,7 @@ public class HotelierController extends ExceptionHandling{
     @PostMapping("/register")
     public ResponseEntity<Hotelier> register(@RequestBody Hotelier hotelier) throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException {
         Hotelier newHotelier = hotelierService.register(hotelier.getRestaurantName(),hotelier.getEmail(),hotelier.getPassword(),hotelier.getCity(),hotelier.getState(),
-                hotelier.getPhone(),hotelier.getAddress(),hotelier.getOpenAt(),hotelier.getCloseAt());
+                hotelier.getPhone(),hotelier.getAddress(),hotelier.getOpenAt(),hotelier.getCloseAt(), hotelier.getTableCount());
         return new ResponseEntity<>(newHotelier, HttpStatus.OK);
     }
 
@@ -76,11 +82,12 @@ public class HotelierController extends ExceptionHandling{
                                         @RequestParam("address") String address,
                                         @RequestParam("openAt") String openAt,
                                         @RequestParam("closeAt") String closeAt,
+                                        @RequestParam("tableCount") int tableCount,
                                         @RequestParam("isActive") String isActive,
                                         @RequestParam("isNotLocked") String isNotLocked,
                                         @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException, NotAnImageFileException, NotAnImageFileException, NotAnImageFileException {
 
-        Hotelier newUser = hotelierService.addNewHotelier(restaurantName,email,city,state,phone,address,openAt,closeAt,role,Boolean.parseBoolean(isNotLocked),
+        Hotelier newUser = hotelierService.addNewHotelier(restaurantName,email,city,state,phone,address,openAt,closeAt, tableCount, role,Boolean.parseBoolean(isNotLocked),
                 Boolean.parseBoolean(isActive),profileImage);
         return new ResponseEntity<>(newUser, HttpStatus.OK);
     }
@@ -89,18 +96,17 @@ public class HotelierController extends ExceptionHandling{
     public ResponseEntity<Hotelier> updateUser(@RequestParam("currentRestaurantName") String currentRestaurantName,
                                                @RequestParam("restaurantName") String restaurantName,
                                                @RequestParam("email") String email,
-                                               @RequestParam("role") String role,
                                                @RequestParam("city") String city,
                                                @RequestParam("state") String state,
                                                @RequestParam("phone") String phone,
                                                @RequestParam("address") String address,
                                                @RequestParam("openAt") String openAt,
                                                @RequestParam("closeAt") String closeAt,
+                                               @RequestParam("tableCount") int tableCount,
                                                @RequestParam("isActive") String isActive,
-                                               @RequestParam("isNotLocked") String isNotLocked,
                                                @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException, NotAnImageFileException {
 
-        Hotelier updatedUser = hotelierService.updateHotelier(currentRestaurantName,restaurantName,email,city,state,phone,address,openAt,closeAt,role,Boolean.parseBoolean(isNotLocked),
+        Hotelier updatedUser = hotelierService.updateHotelier(currentRestaurantName,restaurantName,email,city,state,phone,address,openAt,closeAt,tableCount,
                 Boolean.parseBoolean(isActive),profileImage);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
@@ -108,22 +114,17 @@ public class HotelierController extends ExceptionHandling{
     @PostMapping("/update/profileData")
     public ResponseEntity<Hotelier> updateUser(@RequestParam("currentRestaurantName") String currentRestaurantName,
                                                @RequestParam("restaurantName") String restaurantName,
-                                               @RequestParam("lastName") String lastName,
-                                               @RequestParam("username") String username,
                                                @RequestParam("email") String email,
-                                               @RequestParam("role") String role,
-                                               @RequestParam("country") String country,
                                                @RequestParam("city") String city,
                                                @RequestParam("state") String state,
                                                @RequestParam("phone") String phone,
                                                @RequestParam("address") String address,
                                                @RequestParam("openAt") String openAt,
                                                @RequestParam("closeAt") String closeAt,
-                                               @RequestParam("isActive") String isActive,
-                                               @RequestParam("isNotLocked") String isNotLocked) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException, NotAnImageFileException {
+                                               @RequestParam("tableCount") int tableCount,
+                                               @RequestParam("isActive") String isActive) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException, NotAnImageFileException {
 
-        Hotelier updatedUser = hotelierService.updateHotelierProfileDetails(currentRestaurantName,restaurantName,email,city,state,phone,address,openAt,closeAt,
-                role,Boolean.parseBoolean(isNotLocked),Boolean.parseBoolean(isActive));
+        Hotelier updatedUser = hotelierService.updateHotelierProfileDetails(currentRestaurantName,restaurantName,email,city,state,phone,address,openAt,closeAt,tableCount,Boolean.parseBoolean(isActive));
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
@@ -153,9 +154,33 @@ public class HotelierController extends ExceptionHandling{
     }
 
     @PostMapping("/updateProfileImage")
-    public ResponseEntity<Hotelier> updateProfileImage(@RequestParam("username") String username, @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException, NotAnImageFileException {
+    public ResponseEntity<Hotelier> updateProfileImage(@RequestParam("username") String username, @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UserNotFoundException, EmailExistException, IOException, UsernameExistException, NotAnImageFileException, RestaurantNotFoundException {
         Hotelier user = hotelierService.updateProfileImage(username, profileImage);
         return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<List<Review>> getReviews(@RequestParam("hotelName") String hotelName) throws RestaurantNotFoundException {
+        List<Review> reviews = reviewService.getReviewsByHotelier(hotelName);
+        return new ResponseEntity<>(reviews, HttpStatus.OK);
+    }
+
+    @PostMapping("/tables/create")
+    public ResponseEntity<Table> addTable(@RequestParam("hotelName") String hotelName) throws RestaurantNotFoundException {
+        Table table = tableService.addHotelTable(hotelName);
+        return new ResponseEntity<>(table, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/tables/remove")
+    public ResponseEntity<HttpResponse> removeTable(@RequestParam("tableId") Long tableId) throws Exception {
+        tableService.removeTable(tableId);
+        return response(HttpStatus.OK, "Table removed!");
+    }
+
+    @GetMapping("/tables/list")
+    public ResponseEntity<List<Table>> getTables(@RequestParam("hotelName") String hotelName) throws Exception {
+        List<Table>  tables = tableService.getTables(hotelName);
+        return new ResponseEntity<>(tables, HttpStatus.OK);
     }
 
     @PutMapping("/password/reset/{username}")

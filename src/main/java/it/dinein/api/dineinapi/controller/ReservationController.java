@@ -1,6 +1,8 @@
 package it.dinein.api.dineinapi.controller;
 
+import it.dinein.api.dineinapi.exception.EmailNotFoundException;
 import it.dinein.api.dineinapi.exception.ExceptionHandling;
+import it.dinein.api.dineinapi.exception.TabletNotFoundException;
 import it.dinein.api.dineinapi.exception.UserNotFoundException;
 import it.dinein.api.dineinapi.model.HttpResponse;
 import it.dinein.api.dineinapi.model.Reservation;
@@ -23,7 +25,7 @@ public class ReservationController extends ExceptionHandling {
     @Autowired
     private ReservationService reservationService;
 
-    @GetMapping("/{restaurantName}")
+    @GetMapping("/list/{restaurantName}")
     public ResponseEntity<List<Reservation>> getReservationsByRestaurantName(@PathVariable String restaurantName) {
         List<Reservation> reservations = reservationService.getReservationsByHotelName(restaurantName);
         return new ResponseEntity<>(reservations, HttpStatus.OK);
@@ -39,23 +41,21 @@ public class ReservationController extends ExceptionHandling {
     public ResponseEntity<Reservation> createReservation(
             @RequestParam(name = "hotelName") String hotelName,
             @RequestParam(name = "username") String username,
-            @RequestBody Reservation reservation) throws UserNotFoundException {
+            @RequestBody Reservation reservation) throws UserNotFoundException, TabletNotFoundException, EmailNotFoundException {
         Reservation newReservation = reservationService.createReservation(username,hotelName,reservation);
         return new ResponseEntity<>(newReservation, HttpStatus.OK);
     }
 
-    @PutMapping("/{reservationId}")
+    @PutMapping("/find/{reservationId}")
     public ResponseEntity<Reservation> updatePromotion(
             @PathVariable(name = "reservationId") Long reservationId,
-            @RequestBody Reservation reservation)
-    {
+            @RequestBody Reservation reservation) throws TabletNotFoundException {
         Reservation updatedReservation = reservationService.updateReservation(reservationId,reservation);
         return new ResponseEntity<>(updatedReservation, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete")
-    public HttpEntity<HttpResponse> deletePromotion(@RequestParam(name = "reservationId") Long reservationId)
-    {
+    public HttpEntity<HttpResponse> deletePromotion(@RequestParam(name = "reservationId") Long reservationId) throws TabletNotFoundException {
         reservationService.deleteReservation(reservationId);
         return response(HttpStatus.OK, "ITEM DELETED SUCCESSFULLY");
     }

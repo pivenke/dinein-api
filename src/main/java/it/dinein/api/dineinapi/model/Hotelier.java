@@ -1,5 +1,6 @@
 package it.dinein.api.dineinapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
@@ -26,6 +27,8 @@ public class Hotelier implements Serializable {
     private String address;
     private String openAt;
     private String closeAt;
+    private int tableCount;
+    private Double rating;
     private String imageUrl;
     private Date lastLoginDate;
     private Date lastLoginDateDisplay;
@@ -35,22 +38,32 @@ public class Hotelier implements Serializable {
     private boolean isActive;
     private boolean isNotLocked;
     @OneToMany(mappedBy = "hotelItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<FoodItem> menu;
     @OneToMany(mappedBy = "hotelReservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Reservation> reservations;
     @OneToMany(mappedBy = "hotelOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<UserOrder> userOrders;
     @OneToMany(mappedBy = "hotelPromotion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Promotion> promotions;
+    @OneToMany(mappedBy = "hotelReview", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Review> reviews;
+    @OneToMany(mappedBy = "hotelTable", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Table> tables;
 
     public Hotelier() {
     }
 
     public Hotelier(Long id, String hotelierId, String restaurantName, String password, String email, String city,
-                    String state, String phone, String address, String openAt, String closeAt, String imageUrl,
+                    String state, String phone, String address, String openAt, String closeAt, int tableCount, Double rating,String imageUrl,
                     Date lastLoginDate, Date lastLoginDateDisplay, Date joinedDate, String role, String[] authorities,
                     boolean isActive, boolean isNotLocked, List<FoodItem> menu, List<Reservation> reservations,
-                    List<UserOrder> userOrders, List<Promotion> promotions) {
+                    List<UserOrder> userOrders, List<Promotion> promotions, List<Review> reviews, List<Table> tables) {
         this.id = id;
         this.hotelierId = hotelierId;
         this.restaurantName = restaurantName;
@@ -62,6 +75,8 @@ public class Hotelier implements Serializable {
         this.address = address;
         this.openAt = openAt;
         this.closeAt = closeAt;
+        this.tableCount = tableCount;
+        this.rating = rating;
         this.imageUrl = imageUrl;
         this.lastLoginDate = lastLoginDate;
         this.lastLoginDateDisplay = lastLoginDateDisplay;
@@ -74,6 +89,8 @@ public class Hotelier implements Serializable {
         this.reservations = reservations;
         this.userOrders = userOrders;
         this.promotions = promotions;
+        this.reviews = reviews;
+        this.tables = tables;
     }
 
     public Long getId() {
@@ -266,5 +283,37 @@ public class Hotelier implements Serializable {
 
     public void setOrders(List<UserOrder> userOrders) {
         this.userOrders = userOrders;
+    }
+
+    public int getTableCount() {
+        return tableCount;
+    }
+
+    public List<Table> getTables() {
+        return tables;
+    }
+
+    public void setTables(List<Table> tables) {
+        this.tables = tables;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public void setTableCount(int tableCount) {
+        this.tableCount = tableCount;
     }
 }

@@ -85,7 +85,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
     }
 
     @Override
-    public Hotelier register(String restaurantName, String email, String password, String city, String state, String phone, String address, String openAt, String closeAt) throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException {
+    public Hotelier register(String restaurantName, String email, String password, String city, String state, String phone, String address, String openAt, String closeAt, int tableCount) throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException {
         validateNewUsernameAndEmail(StringUtils.EMPTY, restaurantName, email);
         Hotelier hotelier = new Hotelier();
         hotelier.setHotelierId(generateUserId());
@@ -95,6 +95,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
         hotelier.setState(state);
         hotelier.setOpenAt(openAt);
         hotelier.setCloseAt(closeAt);
+        hotelier.setTableCount(tableCount);
         hotelier.setPhone(phone);
         hotelier.setAddress(address);
         hotelier.setEmail(email);
@@ -158,7 +159,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
     }
 
     @Override
-    public Hotelier addNewHotelier(String restaurantName, String email,String city, String state, String phone, String address, String openAt, String closeAt, String role, boolean isNotLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
+    public Hotelier addNewHotelier(String restaurantName, String email,String city, String state, String phone, String address, String openAt, String closeAt, int tableCount, String role, boolean isNotLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
         validateNewUsernameAndEmail(StringUtils.EMPTY, restaurantName, email);
         Hotelier hotelier = new Hotelier();
         String password = generatePassword();
@@ -169,6 +170,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
         hotelier.setState(state);
         hotelier.setOpenAt(openAt);
         hotelier.setCloseAt(closeAt);
+        hotelier.setTableCount(tableCount);
         hotelier.setCity(city);
         hotelier.setEmail(email);
         hotelier.setPhone(phone);
@@ -189,7 +191,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
     }
 
     @Override
-    public Hotelier updateHotelier(String currentRestaurantName, String restaurantName, String email, String city, String state, String phone, String address, String openAt, String closeAt, String role, boolean isNotLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
+    public Hotelier updateHotelier(String currentRestaurantName, String restaurantName, String email, String city, String state, String phone, String address, String openAt, String closeAt, int tableCount, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
         Hotelier currentHotelier = validateNewUsernameAndEmail(currentRestaurantName, restaurantName, email);
         currentHotelier.setRestaurantName(restaurantName);
         currentHotelier.setEmail(email);
@@ -198,11 +200,9 @@ public class HotelierService implements IHotelierService, UserDetailsService {
         currentHotelier.setPhone(phone);
         currentHotelier.setOpenAt(openAt);
         currentHotelier.setCloseAt(closeAt);
+        currentHotelier.setTableCount(tableCount);
         currentHotelier.setAddress(address);
         currentHotelier.setActive(isActive);
-        currentHotelier.setNotLocked(isNotLocked);
-        currentHotelier.setRole(getRoleEnumName(role).name());
-        currentHotelier.setAuthorities(getRoleEnumName(role).getAuthorities());
         hotelierRepository.save(currentHotelier);
         storageService.deleteFile(currentRestaurantName);
         saveProfileImage(currentHotelier, profileImage);
@@ -210,7 +210,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
     }
 
     @Override
-    public Hotelier updateHotelierProfileDetails(String currentRestaurantName, String restaurantName, String email, String city, String state, String phone, String address, String openAt, String closeAt, String role, boolean isNotLocked, boolean isActive) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
+    public Hotelier updateHotelierProfileDetails(String currentRestaurantName, String restaurantName, String email, String city, String state, String phone, String address, String openAt, String closeAt, int tableCount, boolean isActive) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
         Hotelier currentHotelier = validateNewUsernameAndEmail(currentRestaurantName, restaurantName, email);
         currentHotelier.setRestaurantName(restaurantName);
         currentHotelier.setCity(city);
@@ -218,12 +218,10 @@ public class HotelierService implements IHotelierService, UserDetailsService {
         currentHotelier.setEmail(email);
         currentHotelier.setOpenAt(openAt);
         currentHotelier.setCloseAt(closeAt);
+        currentHotelier.setTableCount(tableCount);
         currentHotelier.setPhone(phone);
         currentHotelier.setAddress(address);
         currentHotelier.setActive(isActive);
-        currentHotelier.setNotLocked(isNotLocked);
-        currentHotelier.setRole(getRoleEnumName(role).name());
-        currentHotelier.setAuthorities(getRoleEnumName(role).getAuthorities());
         hotelierRepository.save(currentHotelier);
         return currentHotelier;
     }
@@ -248,13 +246,20 @@ public class HotelierService implements IHotelierService, UserDetailsService {
     }
 
     @Override
-    public Hotelier updateProfileImage(String restaurantName, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException {
+    public Hotelier updateProfileImage(String restaurantName, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException, RestaurantNotFoundException {
         if (!Arrays.asList(IMAGE_JPEG_VALUE, IMAGE_PNG_VALUE, IMAGE_GIF).contains(profileImage.getContentType())) {
             throw new NotAnImageFileException(BAD_REQUEST, profileImage.getOriginalFilename() + " is not an valid image file.");
         }
-        Hotelier hotelier = validateNewUsernameAndEmail(restaurantName, null, null);
-        saveProfileImage(hotelier, profileImage);
-        return hotelier;
+        Hotelier hotelier = findHotelierByRestaurantName(restaurantName);
+        if (hotelier != null)
+        {
+            saveProfileImage(hotelier, profileImage);
+            return hotelier;
+        }
+        else
+        {
+            throw new RestaurantNotFoundException("Restaurant was not found by " + restaurantName);
+        }
     }
 
     @Override
@@ -262,6 +267,7 @@ public class HotelierService implements IHotelierService, UserDetailsService {
         Hotelier hotelier = hotelierRepository.findHotelierByRestaurantName(restaurantName);
         resetCodeService.verify(code);
         hotelier.setPassword(encodePassword(password));
+        hotelier.setNotLocked(true);
         return hotelierRepository.save(hotelier);
     }
 

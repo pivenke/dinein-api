@@ -14,6 +14,6 @@ public class Security {
     public static final String OPTIONS_HTTP_METHOD = "OPTIONS";
     public static final String[] PUBLIC_URLS = {
             "/api/v1/hotelier/login/**", "/api/v1/user/login/**", "/api/v1/hotelier/register/**", "/api/v1/user/register/**",
-            "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
+            "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/api/v1/user/order-history/**"
     };
 }

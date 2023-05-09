@@ -1,6 +1,7 @@
 package it.dinein.api.dineinapi.service;
 
 import it.dinein.api.dineinapi.exception.*;
+import it.dinein.api.dineinapi.model.Hotelier;
 import it.dinein.api.dineinapi.model.User;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,4 +43,5 @@ public interface IUserService {
     User updateProfileImage(String username, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
 
     User timeBasedPasswordReset(String username, String code, String password) throws ResetCodeExpiredException;
+    List<Hotelier> searchHoteliers(String city, String state, Double rating);
 }

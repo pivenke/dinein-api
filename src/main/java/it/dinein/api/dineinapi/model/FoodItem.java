@@ -1,5 +1,6 @@
 package it.dinein.api.dineinapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
@@ -18,6 +19,7 @@ public class FoodItem implements Serializable {
     private String imageUrl;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Hotelier hotelItem;
 
     public FoodItem() {

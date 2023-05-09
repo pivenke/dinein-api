@@ -2,10 +2,7 @@ package it.dinein.api.dineinapi.controller;
 
 import it.dinein.api.dineinapi.exception.*;
 import it.dinein.api.dineinapi.model.*;
-import it.dinein.api.dineinapi.service.IUserService;
-import it.dinein.api.dineinapi.service.ReservationService;
-import it.dinein.api.dineinapi.service.ResetCodeService;
-import it.dinein.api.dineinapi.service.UserOrderService;
+import it.dinein.api.dineinapi.service.*;
 import it.dinein.api.dineinapi.utility.UJWTTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +39,10 @@ public class UserController extends ExceptionHandling{
     private UserOrderService userOrderService;
     @Autowired
     private ReservationService reservationService;
+    @Autowired
+    private ReviewService reviewService;
+    @Autowired
+    private TableService tableService;
 
 
     @Autowired
@@ -246,29 +247,52 @@ public class UserController extends ExceptionHandling{
         return new ResponseEntity<>(reservations, HttpStatus.OK);
     }
 
-    @PutMapping("/reservations/create")
+    @PostMapping("/reservations/create")
     public ResponseEntity<Reservation> createReservation(
             @RequestParam(name = "hotelName") String hotelName,
             @RequestParam(name = "username") String username,
-            @RequestBody Reservation reservation) throws UserNotFoundException {
+            @RequestBody Reservation reservation) throws UserNotFoundException, TabletNotFoundException, EmailNotFoundException {
         Reservation newReservation = reservationService.createReservation(username,hotelName,reservation);
         return new ResponseEntity<>(newReservation, HttpStatus.OK);
     }
 
     @PutMapping("/reservations/{reservationId}")
-    public ResponseEntity<Reservation> updatePromotion(
+    public ResponseEntity<Reservation> updateReservation(
             @PathVariable(name = "reservationId") Long reservationId,
-            @RequestBody Reservation reservation)
-    {
+            @RequestBody Reservation reservation) throws TabletNotFoundException {
         Reservation updatedReservation = reservationService.updateReservation(reservationId,reservation);
         return new ResponseEntity<>(updatedReservation, HttpStatus.OK);
     }
 
     @DeleteMapping("/reservations/delete")
-    public HttpEntity<HttpResponse> deletePromotion(@RequestParam(name = "reservationId") Long reservationId)
-    {
+    public HttpEntity<HttpResponse> deletePromotion(@RequestParam(name = "reservationId") Long reservationId) throws TabletNotFoundException {
         reservationService.deleteReservation(reservationId);
         return response(HttpStatus.OK, "ITEM DELETED SUCCESSFULLY");
+    }
+
+    @PostMapping("/reviews/create")
+    public HttpEntity<Review> addReview(@RequestParam(name = "hotelName") String hotelName,@RequestParam(name = "username") String username,
+                                        @RequestParam(name = "comment") String comment,@RequestParam(name = "rating") Double rating) throws UserNotFoundException, RestaurantNotFoundException {
+        Review review = reviewService.addReviewByHotelNameAndUserName(hotelName,username,comment,rating);
+        return new ResponseEntity<>(review, HttpStatus.OK);
+    }
+
+    @GetMapping("/tables/available")
+    public HttpEntity<List<Long>> getAvailableList(@RequestParam(name = "hotelName") String hotelName) throws UserNotFoundException, RestaurantNotFoundException {
+        List<Long> availableList = tableService.getAvailableTables(hotelName);
+        return new ResponseEntity<>(availableList, HttpStatus.OK);
+    }
+
+    @GetMapping("/order-history/{username}")
+    public ResponseEntity<String> findOrderHistory(@PathVariable String username) {
+        String historyKeyword = userOrderService.getOrderKeywords(username);
+        return new ResponseEntity<>(historyKeyword, HttpStatus.OK);
+    }
+
+    @GetMapping("/hotels/filter")
+    public ResponseEntity<List<Hotelier>> filter(@RequestParam("city") String city, @RequestParam("state") String state, @RequestParam("rating") Double rating) throws Exception {
+        List<Hotelier> hoteliers = userService.searchHoteliers(city,state,rating);
+        return new ResponseEntity<>(hoteliers, HttpStatus.OK);
     }
 
     private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {

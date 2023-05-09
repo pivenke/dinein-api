@@ -2,8 +2,11 @@ package it.dinein.api.dineinapi.service.implementation;
 
 import it.dinein.api.dineinapi.common.enumeration.Role;
 import it.dinein.api.dineinapi.exception.*;
+import it.dinein.api.dineinapi.model.Hotelier;
+import it.dinein.api.dineinapi.model.Table;
 import it.dinein.api.dineinapi.model.User;
 import it.dinein.api.dineinapi.model.UserPrincipal;
+import it.dinein.api.dineinapi.repository.HotelierRepository;
 import it.dinein.api.dineinapi.repository.UserRepository;
 import it.dinein.api.dineinapi.service.*;
 import org.springframework.stereotype.Service;
@@ -22,9 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static it.dinein.api.dineinapi.common.constant.UserImplementation.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -42,17 +43,19 @@ public class UserService implements IUserService, UserDetailsService{
     private EmailService emailService;
     private StorageService storageService;
     private ResetCodeService resetCodeService;
+    private HotelierRepository hotelierRepository;
 
     @Autowired
     public UserService(UserRepository userRepository,
                        BCryptPasswordEncoder passwordEncoder,
                        LoginAttemptService loginAttemptService,
-                       EmailService emailService, StorageService storageService) {
+                       EmailService emailService, StorageService storageService, HotelierRepository hotelierRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.emailService = emailService;
         this.storageService = storageService;
+        this.hotelierRepository = hotelierRepository;
     }
 
     @Override
@@ -287,6 +290,7 @@ public class UserService implements IUserService, UserDetailsService{
         User user = userRepository.findUserByUsername(username);
         resetCodeService.verify(code);
         user.setPassword(encodePassword(password));
+        user.setNotLocked(true);
         return userRepository.save(user);
     }
 
@@ -315,6 +319,37 @@ public class UserService implements IUserService, UserDetailsService{
 
     private Role getRoleEnumName(String role) {
         return Role.valueOf(role.toUpperCase());
+    }
+
+    @Override
+    public List<Hotelier> searchHoteliers(String city, String state, Double rating) {
+        List<Hotelier> allHoteliers = hotelierRepository.findAll();
+        // create a list to hold the search results
+        List<Hotelier> searchResults = new ArrayList<>();
+
+        // iterate through the list of hoteliers
+        for (Hotelier hotelier : allHoteliers) {
+            // check if the hotelier has at least one available table
+            if (hotelier.getTables() != null && hotelier.getTables().size() > 0)
+            {
+                if (hotelier.getTables().stream().anyMatch(Table::isAvailabilityStatus)) {
+                    // check if the city or state names contain the search criteria
+                    if (hotelier.getCity() != null && hotelier.getCity().toLowerCase().contains(city.toLowerCase()) ||
+                            hotelier.getState() != null && hotelier.getState().toLowerCase().contains(state.toLowerCase())) {
+                        // check if the hotelier's rating is greater than or equal to the search criteria rating
+                        if (hotelier.getRating() != null && hotelier.getRating() <= rating) {
+                            // add the hotelier to the search results list
+                            searchResults.add(hotelier);
+                        }
+                    }
+                }
+            }
+        }
+
+        // sort the search results according to the specified priorities
+        searchResults.sort(Comparator.comparing(Hotelier::getRating).reversed());
+
+        return searchResults;
     }
 
 }

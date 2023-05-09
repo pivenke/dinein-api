@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -95,20 +93,27 @@ public class UserOrderService {
         UserOrder userOrder = userOrderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid order ID: " + orderId));
 
-        if (userOrder != null)
-        {
+        if (userOrder != null) {
             userOrder.setDescription(order.getDescription());
             userOrder.setPrice(order.getPrice());
             userOrder.setStatus(order.getStatus());
             userOrder.setCompleted(order.isCompleted());
+
+            // Replace the existing items list with the new items list
+            List<OrderItem> newItems = order.getItems();
+            userOrder.getItems().clear();
+            for (OrderItem item : newItems) {
+                item.setOrder(userOrder);
+                userOrder.getItems().add(item);
+            }
+
             // Save the updated user order to the database
             return userOrderRepository.save(userOrder);
-        }
-        else
-        {
-            throw  new IllegalArgumentException("Invalid order ID: " + orderId);
+        } else {
+            throw new IllegalArgumentException("Invalid order ID: " + orderId);
         }
     }
+
 
     public UserOrder removeOrderItem(Long orderId, Long itemId) {
         UserOrder order = userOrderRepository.findById(orderId)
@@ -145,4 +150,39 @@ public class UserOrderService {
     public void deleteOrder(Long orderId) {
         userOrderRepository.deleteById(orderId);
     }
+
+    public String getOrderKeywords(String username) {
+        StringBuilder keyword = new StringBuilder();
+        UserOrder userOrder = userOrderRepository.findLatestOrderByUsername(username);
+        for (OrderItem item: userOrder.getItems())
+        {
+            keyword.append(item.getItemName()).append(",");
+        }
+        return keyword.toString();
+    }
+
+    public Map<String, Integer> getItemQuantitySummary(String hotelName) {
+        Map<String, Integer> itemSummary = new HashMap<>();
+
+        List<UserOrder> orders = userOrderRepository.findByHotelName(hotelName);
+
+        for (UserOrder order : orders) {
+            for (OrderItem orderItem : order.getItems()) {
+                String itemName = orderItem.getItemName();
+                int itemQuantity = orderItem.getQuantity();
+
+                if (itemName != null) {
+                    if (itemSummary.containsKey(itemName)) {
+                        int currentQuantity = itemSummary.get(itemName);
+                        itemSummary.put(itemName, currentQuantity + itemQuantity);
+                    } else {
+                        itemSummary.put(itemName, itemQuantity);
+                    }
+                }
+            }
+        }
+
+        return itemSummary;
+    }
+
 }

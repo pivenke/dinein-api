@@ -51,7 +51,7 @@ public class PromotionService {
             }
             return promotionRepository.save(promotion);
         } else {
-            throw new RestaurantNotFoundException("Hotel not found with name: " + hotelName);
+            throw new RestaurantNotFoundException("Hotel not found with the name: " + hotelName);
         }
     }
 

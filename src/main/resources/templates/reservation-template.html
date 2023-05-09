@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Reservation Confirmation</title>
+  <style type="text/css">
+		body {
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+			line-height: 1.5;
+			color: #333;
+			background-color: #f5f5f5;
+			padding: 20px;
+		}
+		h1 {
+			margin-top: 0;
+			margin-bottom: 20px;
+			font-size: 24px;
+			font-weight: bold;
+			color: #333;
+		}
+		ul {
+			list-style-type: none;
+			padding-left: 0;
+		}
+		li {
+			margin-bottom: 10px;
+		}
+		label {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+<h1>Reservation Confirmation</h1>
+<ul>
+  <li>
+    <label>Hotel Name:</label>
+    <span th:text="${hotel.restaurantName}"></span>
+  </li>
+  <li>
+    <label>Reservation ID:</label>
+    <span th:text="${reservation.id}"></span>
+  </li>
+  <li>
+    <label>Table ID:</label>
+    <span th:text="${reservation.tableId}"></span>
+  </li>
+  <li>
+    <label>Check-In Date:</label>
+    <span th:text="${reservation.checkInDate}"></span>
+  </li>
+  <li>
+    <label>Pax Count:</label>
+    <span th:text="${reservation.paxCount}"></span>
+  </li>
+</ul>
+<p>Thank you for choosing our hotel. We look forward to welcoming you soon!</p>
+</body>
+</html>

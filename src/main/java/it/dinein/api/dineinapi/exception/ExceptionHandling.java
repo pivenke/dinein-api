@@ -126,6 +126,12 @@ public class ExceptionHandling {
         return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
+    @ExceptionHandler(TabletNotFoundException.class)
+    public ResponseEntity<HttpResponse> tabletNotFoundException(TabletNotFoundException exception){
+        LOGGER.error(exception.getMessage());
+        return createHttpResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     @ExceptionHandler(IOException.class)
     public ResponseEntity<HttpResponse> iOException(IOException exception){
         LOGGER.error(exception.getMessage());

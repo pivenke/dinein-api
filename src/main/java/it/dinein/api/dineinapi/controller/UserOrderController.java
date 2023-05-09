@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = {"/api/v1/hotelier/orders"})
@@ -22,13 +23,13 @@ public class UserOrderController extends ExceptionHandling {
     @Autowired
     private UserOrderService userOrderService;
 
-    @GetMapping("/{restaurantName}")
+    @GetMapping("/list/{restaurantName}")
     public ResponseEntity<List<UserOrder>> getOrdersByRestaurantName(@PathVariable String restaurantName) {
         List<UserOrder> userOrders = userOrderService.getAllByRestaurantName(restaurantName);
         return new ResponseEntity<>(userOrders, HttpStatus.OK);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/find/{username}")
     public ResponseEntity<List<UserOrder>> getOrdersByUsername(@PathVariable String username) {
         List<UserOrder> userOrders = userOrderService.getAllByUser(username);
         return new ResponseEntity<>(userOrders, HttpStatus.OK);
@@ -59,7 +60,7 @@ public class UserOrderController extends ExceptionHandling {
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
     }
 
-    @PutMapping("/details/{orderId}")
+    @PutMapping("/details/update/{orderId}")
     public ResponseEntity<UserOrder> updateOrderDetails(@PathVariable(name = "orderId") Long orderId,
                                                  @RequestBody UserOrder userOrder)
     {
@@ -67,7 +68,7 @@ public class UserOrderController extends ExceptionHandling {
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{orderId}")
+    @DeleteMapping("/delete/{orderId}")
     public ResponseEntity<UserOrder> removeOrderItem(@PathVariable(name = "orderId") Long orderId,
                                                      @RequestParam(name = "itemId") Long itemId)
     {
@@ -75,11 +76,18 @@ public class UserOrderController extends ExceptionHandling {
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
     }
 
-    @PostMapping("/{orderId}")
+    @PostMapping("/update/{orderId}")
     public ResponseEntity<UserOrder> addOrderItem(@PathVariable(name = "orderId") Long orderId,
                                                      @RequestBody OrderItem orderItem)
     {
         UserOrder updatedOrder = userOrderService.addOrderItem(orderId,orderItem);
+        return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<Map<String,Integer>> getSummary(@RequestParam(name = "hotelName") String hotelName)
+    {
+        Map<String,Integer> updatedOrder = userOrderService.getItemQuantitySummary(hotelName);
         return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
     }
 

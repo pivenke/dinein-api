@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface IHotelierService {
     Hotelier register(String restaurantName, String email, String password, String city,
-                      String state, String phone, String address, String openAt, String closeAt) throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException;
+                      String state, String phone, String address, String openAt, String closeAt, int tableCount) throws UserNotFoundException, EmailExistException, UsernameExistException, MessagingException;
 
     List<Hotelier> getRestaurants();
 
@@ -20,22 +20,21 @@ public interface IHotelierService {
     Hotelier findHotelierByEmail(String email);
 
     Hotelier addNewHotelier(String restaurantName, String email, String city,
-                        String state, String phone, String address, String openAt, String closeAt, String role,
+                        String state, String phone, String address, String openAt, String closeAt, int tableCount, String role,
                     boolean isNotLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
 
     Hotelier updateHotelier(String currentRestaurantName, String restaurantName, String email, String city,
-                        String state, String phone, String address, String openAt, String closeAt, String role,
-                    boolean isNotLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
+                        String state, String phone, String address, String openAt, String closeAt, int tableCount,
+                     boolean isActive, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
 
     Hotelier updateHotelierProfileDetails(String currentRestaurantName, String restaurantName, String email, String city,
-                                      String state, String phone, String address, String openAt, String closeAt, String role,
-                                      boolean isNotLocked, boolean isActive) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
+                                      String state, String phone, String address, String openAt, String closeAt, int tableCount, boolean isActive) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
 
     void deleteHotelier(String restaurantName) throws IOException;
 
     void resetPassword(String email) throws EmailNotFoundException, MessagingException;
 
-    Hotelier updateProfileImage(String restaurantName, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException;
+    Hotelier updateProfileImage(String restaurantName, MultipartFile profileImage) throws UserNotFoundException, EmailExistException, UsernameExistException, IOException, NotAnImageFileException, RestaurantNotFoundException;
 
     Hotelier timeBasedPasswordReset(String restaurantName, String code, String password) throws ResetCodeExpiredException;
 }
